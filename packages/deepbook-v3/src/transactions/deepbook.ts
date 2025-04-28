@@ -133,27 +133,27 @@ export class DeepBookContract {
 	 */
 	modifyOrder =
 		(poolKey: string, balanceManagerKey: string, orderId: string, newQuantity: number) =>
-		(tx: Transaction) => {
-			const pool = this.#config.getPool(poolKey);
-			const balanceManager = this.#config.getBalanceManager(balanceManagerKey);
-			const baseCoin = this.#config.getCoin(pool.baseCoin);
-			const quoteCoin = this.#config.getCoin(pool.quoteCoin);
-			const tradeProof = tx.add(this.#config.balanceManager.generateProof(balanceManagerKey));
-			const inputQuantity = Math.round(newQuantity * baseCoin.scalar);
+			(tx: Transaction) => {
+				const pool = this.#config.getPool(poolKey);
+				const balanceManager = this.#config.getBalanceManager(balanceManagerKey);
+				const baseCoin = this.#config.getCoin(pool.baseCoin);
+				const quoteCoin = this.#config.getCoin(pool.quoteCoin);
+				const tradeProof = tx.add(this.#config.balanceManager.generateProof(balanceManagerKey));
+				const inputQuantity = Math.round(newQuantity * baseCoin.scalar);
 
-			tx.moveCall({
-				target: `${this.#config.DEEPBOOK_PACKAGE_ID}::pool::modify_order`,
-				arguments: [
-					tx.object(pool.address),
-					tx.object(balanceManager.address),
-					tradeProof,
-					tx.pure.u128(orderId),
-					tx.pure.u64(inputQuantity),
-					tx.object(SUI_CLOCK_OBJECT_ID),
-				],
-				typeArguments: [baseCoin.type, quoteCoin.type],
-			});
-		};
+				tx.moveCall({
+					target: `${this.#config.DEEPBOOK_PACKAGE_ID}::pool::modify_order`,
+					arguments: [
+						tx.object(pool.address),
+						tx.object(balanceManager.address),
+						tradeProof,
+						tx.pure.u128(orderId),
+						tx.pure.u64(inputQuantity),
+						tx.object(SUI_CLOCK_OBJECT_ID),
+					],
+					typeArguments: [baseCoin.type, quoteCoin.type],
+				});
+			};
 
 	/**
 	 * @description Cancel an existing order
@@ -729,9 +729,9 @@ export class DeepBookContract {
 		const baseScalar = baseCoin.scalar;
 		const quoteScalar = quoteCoin.scalar;
 
-		const adjustedTickSize = (tickSize * FLOAT_SCALAR * quoteScalar) / baseScalar;
-		const adjustedLotSize = lotSize * baseScalar;
-		const adjustedMinSize = minSize * baseScalar;
+		const adjustedTickSize = Math.round((tickSize * FLOAT_SCALAR * quoteScalar) / baseScalar);
+		const adjustedLotSize = Math.round(lotSize * baseScalar);
+		const adjustedMinSize = Math.round(minSize * baseScalar);
 
 		const deepCoinInput =
 			deepCoin ??
